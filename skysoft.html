@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkySoft — Bonded Warehouse, Uday Sky Kitchen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#151b26;
+    --ink-2:#212a3a;
+    --paper:#f2ede2;
+    --paper-2:#e8e1d2;
+    --customs:#b3401c;
+    --customs-2:#8a2f14;
+    --brass:#a9822f;
+    --bond-green:#3a6b46;
+    --alert:#a33a2e;
+    --line: rgba(21,27,38,0.14);
+    --stamp-blue:#2c4a63;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Zilla Slab',serif;
+    letter-spacing:0.01em;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- perforated ledger texture ---------- */
+  .paper-tex{
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(21,27,38,0.06) 1px, transparent 1.2px);
+    background-size:14px 14px;
+  }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at top left, rgba(179,64,28,0.35), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(44,74,99,0.4), transparent 55%),
+      var(--ink);
+    z-index:100;
+  }
+  .login-card{
+    width:380px; max-width:90vw;
+    background:var(--paper);
+    border-radius:2px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    overflow:hidden;
+    border:1px solid rgba(0,0,0,0.2);
+  }
+  .login-head{
+    background:linear-gradient(135deg,var(--customs),var(--customs-2));
+    color:#fff5ea;
+    padding:26px 28px 22px;
+    position:relative;
+  }
+  .login-head .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    opacity:.85; margin-bottom:6px;
+  }
+  .login-head h1{font-size:26px; margin:0; font-weight:700;}
+  .login-head .sub{font-size:12.5px; opacity:.85; margin-top:4px;}
+  .login-body{padding:26px 28px 28px;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block; font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--customs-2); font-weight:600; margin-bottom:6px;
+  }
+  .field input{
+    width:100%; padding:10px 12px; border:1.5px solid var(--line);
+    background:#fffdf8; border-radius:2px; font-size:14px; font-family:'Inter',sans-serif;
+    color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--stamp-blue); outline-offset:1px; border-color:var(--stamp-blue);}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding:10px 18px; border:none; border-radius:2px; font-weight:600; font-size:13.5px;
+    cursor:pointer; font-family:'Inter',sans-serif; letter-spacing:.01em;
+    transition:transform .12s ease, filter .12s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--bond-green); color:#f4fbf5;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-customs{background:var(--customs); color:#fff5ea;}
+  .btn-customs:hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent; border:1.5px solid var(--line); color:var(--ink);}
+  .btn-ghost:hover{background:rgba(0,0,0,0.04);}
+  .btn-danger{background:var(--alert); color:#fff5ea;}
+  .btn-row{display:flex; gap:10px; margin-top:20px;}
+  .login-foot{
+    padding:12px 28px; border-top:1px solid var(--line);
+    font-size:11.5px; color:#6b6252; display:flex; justify-content:space-between; align-items:center;
+  }
+  .login-note{font-size:11.5px; color:#8a7f6a; margin-top:-6px; margin-bottom:14px; line-height:1.5;}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none; min-height:100vh;}
+  .shell{display:flex; min-height:100vh;}
+  .sidebar{
+    width:230px; flex-shrink:0;
+    background:var(--ink);
+    color:#e9e2d0;
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .sidebar::after{
+    content:""; position:absolute; top:0; right:0; width:1px; height:100%;
+    background:linear-gradient(var(--brass),transparent 90%); opacity:.5;
+  }
+  .brand{
+    padding:22px 20px 18px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .brand .mark{
+    width:34px;height:34px;border-radius:50%;
+    border:2px solid var(--brass);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Zilla Slab',serif; font-weight:700; color:var(--brass); font-size:15px;
+    margin-bottom:10px;
+  }
+  .brand h1{font-size:19px; margin:0; color:#fbf6ea; font-weight:600;}
+  .brand .v{font-size:10.5px; font-family:'IBM Plex Mono',monospace; color:#a9822f; letter-spacing:.08em;}
+
+  nav.menu{padding:14px 10px; flex:1; overflow-y:auto;}
+  .menu-group{margin-bottom:4px;}
+  .menu-title{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.12em;
+    color:#8b8368; padding:12px 10px 6px; font-weight:600;
+  }
+  .menu-item{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px; border-radius:3px; cursor:pointer;
+    font-size:13.5px; color:#d9d2bd; user-select:none;
+    border-left:2px solid transparent;
+  }
+  .menu-item:hover{background:rgba(255,255,255,0.05);}
+  .menu-item.active{
+    background:rgba(179,64,28,0.22);
+    border-left-color:var(--customs);
+    color:#fdf2ea; font-weight:600;
+  }
+  .menu-sub{padding-left:14px;}
+  .sidebar-foot{
+    padding:14px 20px; border-top:1px solid rgba(255,255,255,0.08);
+    font-size:11px; color:#7d765f; display:flex; justify-content:space-between; align-items:center;
+  }
+  .sidebar-foot button{background:none;border:none;color:#c9773f;font-size:11px;cursor:pointer;font-family:inherit;}
+
+  .main{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .topbar{
+    background:#fffdf8; border-bottom:1px solid var(--line);
+    padding:16px 30px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .topbar h2{margin:0; font-size:21px;}
+  .topbar .crumb{font-size:11.5px; color:#8a7f6a; font-family:'IBM Plex Mono',monospace; letter-spacing:.03em;}
+  .stamp-badge{
+    display:flex; align-items:center; gap:8px;
+    border:1.5px solid var(--stamp-blue); color:var(--stamp-blue);
+    padding:5px 12px; border-radius:2px; font-size:11px; font-family:'IBM Plex Mono',monospace;
+    letter-spacing:.06em; transform:rotate(-1.5deg);
+  }
+  .content{padding:26px 30px 60px; flex:1;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .panel{
+    background:#fffdf8; border:1px solid var(--line); border-radius:3px;
+    padding:22px 24px; margin-bottom:20px;
+  }
+  .panel h3{margin:0 0 4px; font-size:16px;}
+  .panel .hint{font-size:12px; color:#8a7f6a; margin-bottom:16px;}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;}
+  @media (max-width:760px){ .grid2,.grid3{grid-template-columns:1fr;} }
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:#8a7f6a; padding:8px 10px; border-bottom:1.5px solid var(--ink);
+    font-weight:600;
+  }
+  td{padding:9px 10px; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+  tr:hover td{background:rgba(179,64,28,0.04);}
+  .num{text-align:right;}
+  .tag-pill{
+    display:inline-block; padding:2px 8px; border-radius:10px; font-size:10.5px;
+    font-family:'Inter',sans-serif; font-weight:600;
+  }
+  .pill-green{background:rgba(58,107,70,0.14); color:var(--bond-green);}
+  .pill-red{background:rgba(163,58,46,0.14); color:var(--alert);}
+  .pill-amber{background:rgba(169,130,47,0.16); color:var(--brass);}
+
+  /* dashboard bars */
+  .bar-row{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  .bar-label{width:60px; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;}
+  .bar-track{flex:1; background:var(--paper-2); border-radius:2px; height:22px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:2px 0 0 2px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px;}
+  .bar-fill span{font-size:11px; color:#fff8ee; font-family:'IBM Plex Mono',monospace;}
+
+  .kpi-row{display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;}
+  .kpi{
+    flex:1; min-width:150px; background:#fffdf8; border:1px solid var(--line);
+    border-left:3px solid var(--customs); border-radius:2px; padding:14px 16px;
+  }
+  .kpi .n{font-family:'Zilla Slab',serif; font-size:26px; font-weight:600;}
+  .kpi .l{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#8a7f6a;}
+
+  select,input[type=text],input[type=number],input[type=date],textarea{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:2px;
+    background:#fffdf8; font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink);
+  }
+  select:focus,input:focus,textarea:focus{outline:2px solid var(--stamp-blue); outline-offset:1px; border-color:var(--stamp-blue);}
+  label.f{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#665f4e; font-weight:600; margin:0 0 6px;}
+  .fgroup{margin-bottom:14px;}
+
+  .subnav{display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--line);}
+  .subnav button{
+    background:none; border:none; padding:10px 4px; margin-right:16px; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size:13.5px; color:#8a7f6a; border-bottom:2px solid transparent;
+  }
+  .subnav button.active{color:var(--customs); border-bottom-color:var(--customs); font-weight:600;}
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--ink); color:#f4ecd8;
+    padding:12px 18px; border-radius:3px; font-size:13px; border-left:3px solid var(--bond-green);
+    box-shadow:0 10px 30px rgba(0,0,0,0.3); opacity:0; transform:translateY(10px);
+    transition:all .25s ease; z-index:200; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+  .toast.err{border-left-color:var(--alert);}
+
+  .empty{padding:36px 10px; text-align:center; color:#a49a80; font-size:13px;}
+  .foot-note{font-size:11px; color:#a49a80; margin-top:10px; font-style:italic;}
+  ::selection{background:var(--brass); color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="tag">USK · Customs Circular 25/2016</div>
+      <h1>SkySoft</h1>
+      <div class="sub">Bonded Warehouse Operations — Ver 1.3</div>
+    </div>
+    <div class="login-body">
+      <div class="login-note">Enter any user name and password to open the demo bond store.</div>
+      <div class="field">
+        <label>User name</label>
+        <input id="uname" type="text" placeholder="bond.operator" value="bond.operator">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="upass" type="text" placeholder="••••••••" value="••••••••">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" style="flex:1" onclick="login()">Log in</button>
+        <button class="btn btn-ghost" onclick="alert('This closes the demo window.')">Cancel</button>
+      </div>
+    </div>
+    <div class="login-foot">
+      <span>Uday Sky Kitchen · Trivandrum</span>
+      <span>All activity is logged</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">SS</div>
+      <h1>SkySoft</h1>
+      <div class="v">VER 1.3 · USK BOND STORE</div>
+    </div>
+    <nav class="menu">
+      <div class="menu-group">
+        <div class="menu-item active" data-view="dashboard">Dashboard</div>
+      </div>
+      <div class="menu-group">
+        <div class="menu-title">Operations</div>
+        <div class="menu-item" data-view="bond-creation">Bond Creation</div>
+        <div class="menu-item" data-view="bond-expiry">Bond Expiry Update</div>
+        <div class="menu-item" data-view="shipping-bill">Shipping Bill</div>
+        <div class="menu-item" data-view="special-entries">Special Entries</div>
+      </div>
+      <div class="menu-group">
+        <div class="menu-title">Report</div>
+        <div class="menu-item" data-view="report-all">All Bond Items</div>
+        <div class="menu-item" data-view="report-ledger">Ledger</div>
+        <div class="menu-item" data-view="report-forma">Form A &amp; B</div>
+      </div>
+      <div class="menu-group">
+        <div class="menu-title">Other</div>
+        <div class="menu-item" data-view="help">Help &amp; Feedback</div>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      <span id="who">bond.operator</span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="view-title">Dashboard</h2>
+        <div class="crumb" id="view-crumb">SKYSOFT / DASHBOARD</div>
+      </div>
+      <div class="stamp-badge">● WAREHOUSE CODE: USK</div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <div class="kpi-row" id="kpi-row"></div>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Airline-wise stock value</h3>
+            <div class="hint">Click a bar to filter the expiry table by airline.</div>
+            <div id="bars"></div>
+          </div>
+          <div class="panel">
+            <h3>Bond expiry within next 45 days</h3>
+            <div class="hint">Double-click a row to open Bond Expiry Update.</div>
+            <table>
+              <thead><tr><th>Bond No</th><th>Airline</th><th>Product</th><th class="num">Expiry</th></tr></thead>
+              <tbody id="expiry-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOND CREATION -->
+      <section class="view" id="view-bond-creation">
+        <div class="panel">
+          <h3>Bill of Entry</h3>
+          <div class="hint">Enter the Goods Receipt bill details, then create the bond. A bond number is generated automatically.</div>
+          <div class="grid3">
+            <div class="fgroup"><label class="f">Bill of Entry No.</label><input id="be-no" type="text" placeholder="e.g. 4731379/2"></div>
+            <div class="fgroup"><label class="f">Bill of Entry Date</label><input id="be-date" type="date"></div>
+            <div class="fgroup"><label class="f">Custom Station of Import</label><input type="text" value="TRV" disabled></div>
+            <div class="fgroup"><label class="f">Airline</label>
+              <select id="be-airline"><option>6E — IndiGo</option><option>IX — Air India Express</option><option>AI — Air India</option></select>
+            </div>
+            <div class="fgroup"><label class="f">Transport</label><input type="text" value="AIR" disabled></div>
+            <div class="fgroup"><label class="f">Bond Expiry Date</label><input id="be-expiry" type="date"></div>
+          </div>
+          <div class="fgroup"><label class="f">Product</label><input id="be-product" type="text" placeholder="e.g. J/Walker Double Black 1 Ltr"></div>
+          <div class="grid3">
+            <div class="fgroup"><label class="f">Qty received</label><input id="be-qty" type="number" placeholder="0"></div>
+            <div class="fgroup"><label class="f">Value (INR)</label><input id="be-value" type="number" placeholder="0.00"></div>
+            <div class="fgroup"><label class="f">Duty (INR)</label><input id="be-duty" type="number" placeholder="0.00"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-customs" onclick="createBond()">Create Bond</button>
+            <span class="foot-note" style="align-self:center;">Check product qty, value, and duty carefully — bond numbers cannot be edited after creation.</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Recently created bonds</h3>
+          <table>
+            <thead><tr><th>Bond No</th><th>Airline</th><th>Product</th><th class="num">Qty</th><th class="num">Value</th><th class="num">Duty</th><th>Expiry</th></tr></thead>
+            <tbody id="recent-bonds"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- BOND EXPIRY UPDATE -->
+      <section class="view" id="view-bond-expiry">
+        <div class="panel" style="max-width:520px;">
+          <h3>Bond Expiry Date Change</h3>
+          <div class="hint">Only bonds with remaining stock appear here.</div>
+          <div class="fgroup"><label class="f">Bond No</label>
+            <select id="exp-bond" onchange="loadExpiry()"></select>
+          </div>
+          <div class="grid2">
+            <div class="fgroup"><label class="f">Airline</label><input id="exp-airline" type="text" disabled></div>
+            <div class="fgroup"><label class="f">Current stock</label><input id="exp-stock" type="text" disabled></div>
+          </div>
+          <div class="fgroup"><label class="f">Product</label><input id="exp-product" type="text" disabled></div>
+          <div class="grid2">
+            <div class="fgroup"><label class="f">Current expiry date</label><input id="exp-current" type="text" disabled></div>
+            <div class="fgroup"><label class="f">Revised expiry date</label><input id="exp-revised" type="date"></div>
+          </div>
+          <button class="btn btn-primary" onclick="updateExpiry()">Update</button>
+        </div>
+      </section>
+
+      <!-- SHIPPING BILL -->
+      <section class="view" id="view-shipping-bill">
+        <div class="panel">
+          <h3>Shipping Bill</h3>
+          <div class="hint">Exporter: Uday Sky Kitchen, Watt Lane, Sanghumugham, Trivandrum, Kerala.</div>
+          <div class="grid3">
+            <div class="fgroup"><label class="f">Airline</label>
+              <select id="sb-airline" onchange="renderAvailableGoods()"><option>6E — IndiGo</option><option>IX — Air India Express</option></select>
+            </div>
+            <div class="fgroup"><label class="f">Flight No.</label><input id="sb-flight" type="text" placeholder="e.g. 6E-712"></div>
+            <div class="fgroup"><label class="f">Destination</label><input id="sb-dest" type="text" placeholder="e.g. DXB"></div>
+          </div>
+          <table>
+            <thead><tr><th>Bond No</th><th>Product</th><th>Expiry</th><th class="num">Available Qty</th><th class="num">Ship Qty</th><th></th></tr></thead>
+            <tbody id="available-goods"></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>Items added to this bill</h3>
+          <table>
+            <thead><tr><th>Bond No</th><th>Description</th><th>Expiry</th><th class="num">Qty</th><th class="num">Duty Amount</th></tr></thead>
+            <tbody id="bill-items"><tr><td colspan="5" class="empty">No items added yet.</td></tr></tbody>
+          </table>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveShippingBill()">Save Shipping Bill</button>
+            <button class="btn btn-ghost" onclick="billItems=[]; renderBillItems();">Cancel</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SPECIAL ENTRIES -->
+      <section class="view" id="view-special-entries">
+        <div class="subnav">
+          <button class="active" data-sub="damage" onclick="switchSub('damage')">Damage</button>
+          <button data-sub="sample" onclick="switchSub('sample')">Sample Issue</button>
+          <button data-sub="shortage" onclick="switchSub('shortage')">Shortage</button>
+        </div>
+        <div class="panel" style="max-width:560px;">
+          <h3 id="se-title">Bond Damage Entry</h3>
+          <div class="hint" id="se-hint">This is a non-reversible activity. Only an administrator can reverse it.</div>
+          <div class="fgroup"><label class="f">Bond No</label>
+            <select id="se-bond" onchange="loadSpecial()"></select>
+          </div>
+          <div class="grid2">
+            <div class="fgroup"><label class="f">Product</label><input id="se-product" type="text" disabled></div>
+            <div class="fgroup"><label class="f">Available qty</label><input id="se-avail" type="text" disabled></div>
+          </div>
+          <div class="grid2">
+            <div class="fgroup"><label class="f" id="se-qty-label">Damage qty</label><input id="se-qty" type="number" placeholder="0"></div>
+            <div class="fgroup"><label class="f">Date</label><input id="se-date" type="date"></div>
+          </div>
+          <div class="fgroup"><label class="f">Remark &amp; authorization</label><textarea id="se-remark" rows="3" placeholder="Reason and authorizing officer"></textarea></div>
+          <button class="btn btn-danger" onclick="saveSpecial()">Save</button>
+        </div>
+      </section>
+
+      <!-- REPORT: ALL BOND ITEMS -->
+      <section class="view" id="view-report-all">
+        <div class="panel">
+          <h3>All Bond Items</h3>
+          <table>
+            <thead><tr>
+              <th>Bond No</th><th>Bond Date</th><th>Expiry</th><th>Airline</th><th>Product</th>
+              <th class="num">Value</th><th class="num">Duty</th><th class="num">Qty</th>
+              <th class="num">Damage</th><th class="num">Shortage</th><th class="num">Sample</th><th class="num">Shipped</th><th class="num">Current Stock</th>
+            </tr></thead>
+            <tbody id="all-items"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- REPORT: LEDGER -->
+      <section class="view" id="view-report-ledger">
+        <div class="panel" style="max-width:640px;">
+          <h3>Bond Wise Ledger</h3>
+          <div class="grid2">
+            <div class="fgroup"><label class="f">Airline</label>
+              <select id="lg-airline" onchange="populateLedgerBonds()"></select>
+            </div>
+            <div class="fgroup"><label class="f">Bond No</label>
+              <select id="lg-bond"></select>
+            </div>
+          </div>
+          <button class="btn btn-ghost" onclick="renderLedger()">Search</button>
+        </div>
+        <div class="panel" id="ledger-panel" style="display:none;"></div>
+      </section>
+
+      <!-- REPORT: FORM A & B -->
+      <section class="view" id="view-report-forma">
+        <div class="panel">
+          <h3>Form A &amp; B — Receipts &amp; Issue</h3>
+          <div class="hint">In terms of Customs Circular No. 25/2016, dated 08.06.2016. Warehouse: M/s Uday Sky Kitchen, Trivandrum. This template is provided by Customs — any change here needs approval from the concerned officer.</div>
+          <div class="fgroup" style="max-width:220px;"><label class="f">Month</label><input type="text" value="Jul - 2026" disabled></div>
+          <table>
+            <thead><tr><th>Sl</th><th>Bill of Entry &amp; Date</th><th>Bond No &amp; Date</th><th>Description</th><th class="num">Qty</th><th class="num">Value</th><th class="num">Duty</th><th>Received</th><th class="num">Damage</th><th class="num">Shortage</th><th class="num">Closing Stock</th></tr></thead>
+            <tbody id="forma-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- HELP -->
+      <section class="view" id="view-help">
+        <div class="panel" style="max-width:520px;">
+          <h3>Feedback or suggestions</h3>
+          <p style="font-size:13.5px; line-height:1.6;">Contact <strong>info@securaonline.com</strong> for technical support, installation, application support, or process automation requests.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;">
+            <span class="tag-pill pill-amber">Technical Support</span>
+            <span class="tag-pill pill-amber">Installation &amp; Setup</span>
+            <span class="tag-pill pill-amber">Maintenance</span>
+            <span class="tag-pill pill-amber">Application Support</span>
+            <span class="tag-pill pill-amber">Data Recovery</span>
+            <span class="tag-pill pill-amber">IT Audit</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- state ---------------- */
+let bonds = [
+  {no:"6E/00001/20-21", airline:"6E", product:"Black Label 1 Ltr", qty:8, value:11416, duty:19840, bondDate:"2021-02-11", expiry:"2021-08-06", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00002/20-21", airline:"6E", product:"Majestik White", qty:205, value:38335, duty:63140, bondDate:"2021-02-11", expiry:"2021-07-04", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00003/20-21", airline:"6E", product:"Majestik Red", qty:166, value:31042, duty:51128, bondDate:"2021-02-11", expiry:"2021-07-04", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00004/20-21", airline:"6E", product:"Smirnoff Red Mini", qty:208, value:10192, duty:16848, bondDate:"2021-02-11", expiry:"2021-07-04", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00005/20-21", airline:"6E", product:"J/Walker Double Black 1 Ltr", qty:12, value:22068, duty:33108, bondDate:"2021-02-11", expiry:"2021-07-09", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00006/20-21", airline:"6E", product:"Black Label 50 ML", qty:192, value:24576, duty:40512, bondDate:"2021-03-25", expiry:"2021-07-04", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00008/20-21", airline:"6E", product:"Absolut Blue 1 Ltr", qty:4, value:3180, duty:5243, bondDate:"2021-03-25", expiry:"2021-07-04", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"6E/00009/20-21", airline:"6E", product:"Smirnoig Shiraz (R/Wine)", qty:24, value:4053, duty:6696, bondDate:"2021-03-25", expiry:"2021-07-04", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"IX/00003/20-21", airline:"IX", product:"Alu.Foil Square Cont.", qty:5400, value:19495, duty:4741, bondDate:"2021-02-11", expiry:"2021-06-06", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"IX/00004/20-21", airline:"IX", product:"Disp. Pillow Cover", qty:4000, value:12148, duty:4552, bondDate:"2021-02-11", expiry:"2021-07-27", damage:0, shortage:0, sample:0, shipped:0},
+  {no:"IX/00002/20-21", airline:"IX", product:"Black Label 50 ML", qty:2607, value:392767, duty:648065, bondDate:"2021-02-11", expiry:"2021-08-03", damage:0, shortage:0, sample:0, shipped:0},
+];
+let billItems = [];
+let currentSub = "damage";
+
+function currentStock(b){ return b.qty - b.damage - b.shortage - b.sample - b.shipped; }
+function fmt(n){ return Number(n).toLocaleString('en-IN'); }
+function toast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(()=>t.className='toast', 2200);
+}
+
+/* ---------------- login/logout ---------------- */
+function login(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('who').textContent = document.getElementById('uname').value || 'bond.operator';
+  renderAll();
+}
+function logout(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+/* ---------------- nav ---------------- */
+document.querySelectorAll('.menu-item[data-view]').forEach(item=>{
+  item.addEventListener('click', ()=> showView(item.dataset.view));
+});
+function showView(name){
+  document.querySelectorAll('.menu-item').forEach(i=>i.classList.toggle('active', i.dataset.view===name));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const titles = {
+    'dashboard':'Dashboard','bond-creation':'Bond Creation','bond-expiry':'Bond Expiry Update',
+    'shipping-bill':'Shipping Bill','special-entries':'Special Entries',
+    'report-all':'All Bond Items','report-ledger':'Bond Ledger','report-forma':'Form A & B',
+    'help':'Help & Feedback'
+  };
+  document.getElementById('view-title').textContent = titles[name];
+  document.getElementById('view-crumb').textContent = 'SKYSOFT / ' + name.toUpperCase().replace('-','_');
+  if(name==='bond-expiry') populateExpiryBonds();
+  if(name==='shipping-bill') renderAvailableGoods();
+  if(name==='special-entries') populateSpecialBonds();
+  if(name==='report-all') renderAllItems();
+  if(name==='report-ledger') populateLedgerAirlines();
+  if(name==='report-forma') renderFormA();
+}
+
+/* ---------------- dashboard ---------------- */
+function renderAll(){
+  renderKpis();
+  renderBars();
+  renderExpiryTable();
+  renderRecentBonds();
+}
+function renderKpis(){
+  const totalValue = bonds.reduce((s,b)=>s+b.value,0);
+  const totalDuty = bonds.reduce((s,b)=>s+b.duty,0);
+  const totalStock = bonds.reduce((s,b)=>s+currentStock(b),0);
+  const expiringSoon = bonds.filter(isExpiringSoon).length;
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi"><div class="n">₹${fmt(totalValue)}</div><div class="l">Total bond value</div></div>
+    <div class="kpi"><div class="n">₹${fmt(totalDuty)}</div><div class="l">Total duty</div></div>
+    <div class="kpi"><div class="n">${fmt(totalStock)}</div><div class="l">Units in stock</div></div>
+    <div class="kpi"><div class="n">${expiringSoon}</div><div class="l">Expiring within 45 days</div></div>
+  `;
+}
+function renderBars(){
+  const airlines = {};
+  bonds.forEach(b=>{ airlines[b.airline] = (airlines[b.airline]||0) + b.value; });
+  const max = Math.max(...Object.values(airlines));
+  const colors = {'6E':'#3a6b46','IX':'#b3401c','AI':'#2c4a63'};
+  document.getElementById('bars').innerHTML = Object.entries(airlines).map(([code,val])=>`
+    <div class="bar-row">
+      <div class="bar-label">${code}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(val/max*100).toFixed(1)}%; background:${colors[code]||'#a9822f'}"><span>₹${fmt(val)}</span></div></div>
+    </div>
+  `).join('');
+}
+function isExpiringSoon(b){
+  const days = (new Date(b.expiry) - new Date('2026-07-16')) / 86400000;
+  return days <= 45;
+}
+function renderExpiryTable(){
+  const rows = bonds.filter(b=>currentStock(b)>0).slice(0,8).map(b=>`
+    <tr ondblclick="showView('bond-expiry'); setTimeout(()=>document.getElementById('exp-bond').value='${b.no}', 0); loadExpiry();">
+      <td>${b.no}</td><td>${b.airline}</td><td>${b.product}</td><td class="num">${b.expiry}</td>
+    </tr>`).join('');
+  document.getElementById('expiry-table').innerHTML = rows || '<tr><td colspan="4" class="empty">No bonds nearing expiry.</td></tr>';
+}
+function renderRecentBonds(){
+  const rows = bonds.slice(-6).reverse().map(b=>`
+    <tr><td>${b.no}</td><td>${b.airline}</td><td>${b.product}</td><td class="num">${fmt(b.qty)}</td><td class="num">₹${fmt(b.value)}</td><td class="num">₹${fmt(b.duty)}</td><td>${b.expiry}</td></tr>
+  `).join('');
+  document.getElementById('recent-bonds').innerHTML = rows;
+}
+
+/* ---------------- bond creation ---------------- */
+function createBond(){
+  const airlineSel = document.getElementById('be-airline').value;
+  const code = airlineSel.split(' — ')[0];
+  const product = document.getElementById('be-product').value.trim();
+  const qty = Number(document.getElementById('be-qty').value);
+  const value = Number(document.getElementById('be-value').value);
+  const duty = Number(document.getElementById('be-duty').value);
+  const expiry = document.getElementById('be-expiry').value;
+  const bondDate = document.getElementById('be-date').value || '2026-07-16';
+
+  if(!product || !qty || !expiry){
+    toast('Enter product, quantity, and expiry date before creating the bond.', true);
+    return;
+  }
+  const seq = bonds.filter(b=>b.airline===code).length + 1;
+  const no = `${code}/${String(seq).padStart(5,'0')}/26-27`;
+  bonds.push({no, airline:code, product, qty, value:value||0, duty:duty||0, bondDate, expiry, damage:0, shortage:0, sample:0, shipped:0});
+  toast(`Bond ${no} created.`);
+  document.getElementById('be-product').value='';
+  document.getElementById('be-qty').value='';
+  document.getElementById('be-value').value='';
+  document.getElementById('be-duty').value='';
+  renderAll();
+  renderRecentBonds();
+}
+
+/* ---------------- bond expiry update ---------------- */
+function populateExpiryBonds(){
+  const sel = document.getElementById('exp-bond');
+  sel.innerHTML = bonds.filter(b=>currentStock(b)>0).map(b=>`<option value="${b.no}">${b.no}</option>`).join('');
+  loadExpiry();
+}
+function loadExpiry(){
+  const no = document.getElementById('exp-bond').value;
+  const b = bonds.find(x=>x.no===no);
+  if(!b) return;
+  document.getElementById('exp-airline').value = b.airline;
+  document.getElementById('exp-product').value = b.product;
+  document.getElementById('exp-stock').value = currentStock(b);
+  document.getElementById('exp-current').value = b.expiry;
+  document.getElementById('exp-revised').value = b.expiry;
+}
+function updateExpiry(){
+  const no = document.getElementById('exp-bond').value;
+  const b = bonds.find(x=>x.no===no);
+  const revised = document.getElementById('exp-revised').value;
+  if(!revised){ toast('Choose a revised expiry date.', true); return; }
+  b.expiry = revised;
+  toast(`Expiry for ${no} updated to ${revised}.`);
+  loadExpiry();
+  renderAll();
+}
+
+/* ---------------- shipping bill ---------------- */
+function renderAvailableGoods(){
+  const code = document.getElementById('sb-airline').value.split(' — ')[0];
+  const rows = bonds.filter(b=>b.airline===code && currentStock(b)>0).map(b=>`
+    <tr>
+      <td>${b.no}</td><td>${b.product}</td><td>${b.expiry}</td>
+      <td class="num">${currentStock(b)}</td>
+      <td class="num"><input type="number" min="0" max="${currentStock(b)}" style="width:70px; padding:4px;" id="ship-${b.no.replace(/\//g,'_')}"></td>
+      <td><button class="btn btn-ghost" style="padding:4px 10px; font-size:12px;" onclick="addToShippingBill('${b.no}')">Add</button></td>
+    </tr>`).join('');
+  document.getElementById('available-goods').innerHTML = rows || '<tr><td colspan="6" class="empty">No stock available for this airline.</td></tr>';
+}
+function addToShippingBill(no){
+  const b = bonds.find(x=>x.no===no);
+  const input = document.getElementById('ship-'+no.replace(/\//g,'_'));
+  const qty = Number(input.value);
+  if(!qty || qty<=0 || qty>currentStock(b)){ toast('Enter a valid quantity within available stock.', true); return; }
+  const dutyPerUnit = b.duty / b.qty;
+  billItems.push({no:b.no, desc:b.product, expiry:b.expiry, qty, dutyAmount:Math.round(dutyPerUnit*qty)});
+  input.value='';
+  renderBillItems();
+  toast(`Added ${qty} × ${b.product} to shipping bill.`);
+}
+function renderBillItems(){
+  const rows = billItems.map(i=>`<tr><td>${i.no}</td><td>${i.desc}</td><td>${i.expiry}</td><td class="num">${i.qty}</td><td class="num">₹${fmt(i.dutyAmount)}</td></tr>`).join('');
+  document.getElementById('bill-items').innerHTML = rows || '<tr><td colspan="5" class="empty">No items added yet.</td></tr>';
+}
+function saveShippingBill(){
+  if(billItems.length===0){ toast('Add at least one item before saving.', true); return; }
+  billItems.forEach(i=>{
+    const b = bonds.find(x=>x.no===i.no);
+    if(b) b.shipped += i.qty;
+  });
+  toast(`Shipping bill saved with ${billItems.length} item(s).`);
+  billItems = [];
+  renderBillItems();
+  renderAvailableGoods();
+  renderAll();
+}
+
+/* ---------------- special entries ---------------- */
+function switchSub(name){
+  currentSub = name;
+  document.querySelectorAll('.subnav button').forEach(b=>b.classList.toggle('active', b.dataset.sub===name));
+  const titles = {damage:'Bond Damage Entry', sample:'Bond Sample Issue', shortage:'Bond Shortage Entry'};
+  const qtyLabels = {damage:'Damage qty', sample:'Sample qty', shortage:'Shortage qty'};
+  document.getElementById('se-title').textContent = titles[name];
+  document.getElementById('se-qty-label').textContent = qtyLabels[name];
+  loadSpecial();
+}
+function populateSpecialBonds(){
+  const sel = document.getElementById('se-bond');
+  sel.innerHTML = bonds.filter(b=>currentStock(b)>0).map(b=>`<option value="${b.no}">${b.no}</option>`).join('');
+  loadSpecial();
+}
+function loadSpecial(){
+  const no = document.getElementById('se-bond').value;
+  const b = bonds.find(x=>x.no===no);
+  if(!b) return;
+  document.getElementById('se-product').value = b.product;
+  document.getElementById('se-avail').value = currentStock(b);
+}
+function saveSpecial(){
+  const no = document.getElementById('se-bond').value;
+  const b = bonds.find(x=>x.no===no);
+  const qty = Number(document.getElementById('se-qty').value);
+  const date = document.getElementById('se-date').value;
+  const remark = document.getElementById('se-remark').value;
+  if(!qty || qty<=0 || qty>currentStock(b)){ toast('Enter a quantity within available stock.', true); return; }
+  if(!remark.trim()){ toast('Remark & authorization is required.', true); return; }
+  b[currentSub] += qty;
+  toast(`${currentSub[0].toUpperCase()+currentSub.slice(1)} entry of ${qty} saved for ${no}. This cannot be reversed except by an administrator.`);
+  document.getElementById('se-qty').value='';
+  document.getElementById('se-remark').value='';
+  populateSpecialBonds();
+  renderAll();
+}
+
+/* ---------------- reports ---------------- */
+function renderAllItems(){
+  const rows = bonds.map(b=>`
+    <tr>
+      <td>${b.no}</td><td>${b.bondDate}</td><td>${b.expiry}</td><td>${b.airline}</td><td>${b.product}</td>
+      <td class="num">₹${fmt(b.value)}</td><td class="num">₹${fmt(b.duty)}</td><td class="num">${fmt(b.qty)}</td>
+      <td class="num">${b.damage}</td><td class="num">${b.shortage}</td><td class="num">${b.sample}</td><td class="num">${b.shipped}</td>
+      <td class="num"><span class="tag-pill ${currentStock(b)>0?'pill-green':'pill-red'}">${currentStock(b)}</span></td>
+    </tr>`).join('');
+  document.getElementById('all-items').innerHTML = rows;
+}
+function populateLedgerAirlines(){
+  const codes = [...new Set(bonds.map(b=>b.airline))];
+  document.getElementById('lg-airline').innerHTML = codes.map(c=>`<option value="${c}">${c}</option>`).join('');
+  populateLedgerBonds();
+}
+function populateLedgerBonds(){
+  const code = document.getElementById('lg-airline').value;
+  document.getElementById('lg-bond').innerHTML = bonds.filter(b=>b.airline===code).map(b=>`<option value="${b.no}">${b.no}</option>`).join('');
+}
+function renderLedger(){
+  const no = document.getElementById('lg-bond').value;
+  const b = bonds.find(x=>x.no===no);
+  const panel = document.getElementById('ledger-panel');
+  if(!b){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  panel.innerHTML = `
+    <h3 style="text-align:center; margin-bottom:2px;">LEDGER</h3>
+    <div style="text-align:center; font-size:12px; color:#8a7f6a; margin-bottom:16px;">FOR BOND NO: ${b.no}</div>
+    <div class="grid3" style="margin-bottom:16px;">
+      <div><div class="hint" style="margin:0;">Airline</div><strong>${b.airline}</strong></div>
+      <div><div class="hint" style="margin:0;">Product</div><strong>${b.product}</strong></div>
+      <div><div class="hint" style="margin:0;">Bond date</div><strong>${b.bondDate}</strong></div>
+      <div><div class="hint" style="margin:0;">Bond expiry</div><strong>${b.expiry}</strong></div>
+      <div><div class="hint" style="margin:0;">Bond value</div><strong>₹${fmt(b.value)}</strong></div>
+      <div><div class="hint" style="margin:0;">Bond duty</div><strong>₹${fmt(b.duty)}</strong></div>
+    </div>
+    <table>
+      <thead><tr><th>Received</th><th>Damage</th><th>Shortage</th><th>Sample</th><th>Shipped</th><th>Current Stock</th></tr></thead>
+      <tbody><tr>
+        <td class="num">${fmt(b.qty)}</td><td class="num">${b.damage}</td><td class="num">${b.shortage}</td>
+        <td class="num">${b.sample}</td><td class="num">${b.shipped}</td><td class="num">${currentStock(b)}</td>
+      </tr></tbody>
+    </table>`;
+}
+function renderFormA(){
+  const rows = bonds.map((b,i)=>`
+    <tr><td>${i+1}</td><td>—</td><td>${b.no}<br>${b.bondDate}</td><td>${b.product}</td>
+    <td class="num">${fmt(b.qty)}</td><td class="num">₹${fmt(b.value)}</td><td class="num">₹${fmt(b.duty)}</td>
+    <td>${b.bondDate}</td><td class="num">${b.damage}</td><td class="num">${b.shortage}</td><td class="num">${currentStock(b)}</td></tr>
+  `).join('');
+  document.getElementById('forma-table').innerHTML = rows;
+}
+</script>
+</body>
+</html>
